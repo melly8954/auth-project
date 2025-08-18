@@ -1,7 +1,10 @@
 package com.melly.api.controller;
 
+import com.melly.common.annotation.ApiErrorResponses;
+import com.melly.common.annotation.ApiSuccessResponse;
 import com.melly.common.controller.ResponseController;
 import com.melly.common.dto.ResponseDto;
+import com.melly.common.exception.ErrorType;
 import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
 import com.melly.service.session.service.SessionService;
@@ -25,6 +28,10 @@ public class AuthController implements ResponseController {
 
     @PostMapping("/session/login")
     @Operation(summary = "세션 로그인", description = "아이디와 비밀번호로 세션 로그인 처리")
+    @ApiSuccessResponse
+    @ApiErrorResponses({
+            ErrorType.INTERNAL_ERROR
+    })
     public ResponseEntity<ResponseDto> sessionLogin(@RequestBody LoginRequestDto dto, HttpServletRequest request){
         LoginResponseDto response = sessionService.login(dto, request);
         return makeResponseEntity(
