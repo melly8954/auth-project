@@ -24,5 +24,5 @@ public class ResponseDto{
     private String message;
 
     @Schema(description = "응답 데이터")
-    private Object  data;
+    private Object data;
 }

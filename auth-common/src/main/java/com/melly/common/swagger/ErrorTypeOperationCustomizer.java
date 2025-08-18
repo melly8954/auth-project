@@ -7,13 +7,10 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class ErrorTypeOperationCustomizer implements OperationCustomizer {
@@ -38,7 +35,6 @@ public class ErrorTypeOperationCustomizer implements OperationCustomizer {
                         .content(new Content().addMediaType(
                                 "application/json",
                                 new MediaType()
-                                        .schema(new Schema<>().$ref("#/components/schemas/ResponseDto"))
                                         .example(example)
                         ));
 

@@ -1,7 +1,6 @@
 package com.melly.api.controller;
 
 import com.melly.common.annotation.ApiErrorResponses;
-import com.melly.common.annotation.ApiSuccessResponse;
 import com.melly.common.controller.ResponseController;
 import com.melly.common.dto.ResponseDto;
 import com.melly.common.exception.ErrorType;
@@ -9,6 +8,10 @@ import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
 import com.melly.service.session.service.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +31,30 @@ public class AuthController implements ResponseController {
 
     @PostMapping("/session/login")
     @Operation(summary = "세션 로그인", description = "아이디와 비밀번호로 세션 로그인 처리")
-    @ApiSuccessResponse
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "회원가입 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(
+                                    value = """
+                {
+                    "code": 200,
+                    "errorCode": null,
+                    "message": "로그인 성공",
+                    "data": {
+                        "username": "testid01",
+                        "role": "USER",
+                        "message": "로그인 성공",
+                        "success": true
+                    }
+                }
+                """
+                            )
+                    )
+            )
+    })
     @ApiErrorResponses({
             ErrorType.INTERNAL_ERROR
     })
