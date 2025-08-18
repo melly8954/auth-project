@@ -1,0 +1,17 @@
+project(':auth-service') {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation project(':auth-common')
+        implementation project(':auth-domain')
+    }
+
+    tasks.bootJar {
+        enabled = false
+    }
+
+    tasks.jar {
+        enabled = true
+    }
+}

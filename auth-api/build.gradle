@@ -1,0 +1,25 @@
+project(':auth-api') {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+        runtimeOnly 'com.mysql:mysql-connector-j'
+
+        implementation project(':auth-common')
+        implementation project(':auth-domain')
+        implementation project(':auth-service')
+
+        // p6spy 라이브러리 추가
+        implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1'
+
+        // Swagger
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    }
+
+    bootJar {
+        enabled = true  // Spring Boot 실행용 fat jar 생성 활성화
+    }
+
+    jar {
+        enabled = false // 일반 jar 생성 비활성화 (선택사항)
+    }
+}

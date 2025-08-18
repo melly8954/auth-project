@@ -1,4 +1,4 @@
-package enums;
+package com.melly.domain.enums;
 
 import lombok.Getter;
 

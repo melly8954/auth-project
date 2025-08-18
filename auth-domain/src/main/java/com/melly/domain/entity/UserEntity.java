@@ -1,7 +1,7 @@
-package entity;
+package com.melly.domain.entity;
 
-import enums.UserRole;
-import enums.UserStatus;
+import com.melly.domain.enums.UserRole;
+import com.melly.domain.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +26,10 @@ public class UserEntity {
     private String password;
     private String email;
 
+    @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    @Enumerated(EnumType.STRING)
     private UserStatus status;
 
     @Column(name="created_at")
