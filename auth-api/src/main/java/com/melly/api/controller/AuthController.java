@@ -5,6 +5,8 @@ import com.melly.common.dto.ResponseDto;
 import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
 import com.melly.service.session.service.SessionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,10 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
+@Tag(name = "Auth API", description = "사용자 인증방식 API")
 public class AuthController implements ResponseController {
     private final SessionService sessionService;
 
     @PostMapping("/session/login")
+    @Operation(summary = "세션 로그인", description = "아이디와 비밀번호로 세션 로그인 처리")
     public ResponseEntity<ResponseDto> sessionLogin(@RequestBody LoginRequestDto dto, HttpServletRequest request){
         LoginResponseDto response = sessionService.login(dto, request);
         return makeResponseEntity(

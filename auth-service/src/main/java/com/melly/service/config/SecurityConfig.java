@@ -30,9 +30,14 @@ public class SecurityConfig {
 
                 // 요청별 인가 정책
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users").permitAll()
-                        .requestMatchers("/api/v1/auth/session/login").permitAll()
-                        .requestMatchers("/api/v1/auth/session/logout").permitAll()
+                        .requestMatchers(
+                                "/api/v1/users",
+                                "/api/v1/auth/session/login",
+                                "/api/v1/auth/session/logout",
+                                "/swagger-ui/**",        // Swagger UI 접속 허용
+                                "/v3/api-docs/**",       // OpenAPI 명세서 JSON 접근 허용
+                                "/swagger-ui.html"       // Swagger UI 기본 html 파일
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
 
