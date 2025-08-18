@@ -1,0 +1,13 @@
+project(':auth-common') {
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-security'
+    }
+
+    tasks.bootJar {
+        enabled = false     // 공통 모듈은 bootJar 로 패키징 할 필요 없음
+    }
+
+    tasks.jar {
+        enabled = true
+    }
+}
