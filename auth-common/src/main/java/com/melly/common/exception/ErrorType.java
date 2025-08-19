@@ -21,7 +21,9 @@ public enum ErrorType {
     PASSWORD_MISMATCH("password_mismatch", "비밀번호와 비밀번호 확인이 일치하지 않습니다.", HttpStatus.BAD_REQUEST),
 
     BAD_CREDENTIALS("bad_credentials", "비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED),
-    USER_NOT_FOUND("user_not_found", "해당 정보로 등록된 사용자가 없습니다.", HttpStatus.NOT_FOUND);
+    USER_INACTIVE("user_inactive", "비활성화된 계정입니다.", HttpStatus.UNAUTHORIZED),
+    USER_NOT_FOUND("user_not_found", "해당 정보로 등록된 사용자가 없습니다.", HttpStatus.NOT_FOUND),
+    USER_DELETED("user_deleted", "탈퇴된 계정입니다.", HttpStatus.UNAUTHORIZED);
 
     private final String errorCode;      // errorCode
     private final String message;       // 사용자 메시지

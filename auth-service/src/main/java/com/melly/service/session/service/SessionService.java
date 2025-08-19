@@ -1,13 +1,18 @@
 package com.melly.service.session.service;
 
+import com.melly.common.exception.CustomException;
+import com.melly.common.exception.ErrorType;
 import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
@@ -47,13 +52,15 @@ public class SessionService {
                     .success(true)
                     .build();
 
-        } catch (Exception e) {
-            return LoginResponseDto.builder()
-                    .username(null)
-                    .role(null)
-                    .message("로그인 실패: " + e.getMessage())
-                    .success(false)
-                    .build();
+        } catch (BadCredentialsException e) {
+            throw new CustomException(ErrorType.BAD_CREDENTIALS);
+        } catch (DisabledException e) {
+            if ("USER_DELETED".equals(e.getMessage())) {
+                throw new CustomException(ErrorType.USER_DELETED);
+            }
+            throw new CustomException(ErrorType.USER_INACTIVE);
+        } catch (AuthenticationException e) {
+            throw new CustomException(ErrorType.INTERNAL_ERROR);
         }
     }
 }

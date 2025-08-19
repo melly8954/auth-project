@@ -5,7 +5,6 @@ import com.melly.common.dto.ResponseDto;
 import com.melly.common.exception.ErrorType;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.stereotype.Component;
