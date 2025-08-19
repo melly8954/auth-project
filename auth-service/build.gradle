@@ -3,6 +3,7 @@ project(':auth-service') {
         implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
         implementation 'org.springframework.boot:spring-boot-starter-security'
         implementation 'org.springframework.boot:spring-boot-starter-web'
+        implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
         implementation project(':auth-common')
         implementation project(':auth-domain')
     }

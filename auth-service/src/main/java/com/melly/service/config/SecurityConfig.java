@@ -1,7 +1,12 @@
 package com.melly.service.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melly.domain.repository.UserRepository;
 import com.melly.service.auth.CustomAuthenticationProvider;
+import com.melly.service.auth.CustomOAuth2UserService;
+import com.melly.service.auth.PrincipalDetails;
+import com.melly.service.session.dto.SocialLoginResponseDto;
+import com.melly.service.session.service.SocialSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,20 +27,19 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final SocialSessionService socialSessionService;
 
     @Bean
     @Order(1)
     public SecurityFilterChain sessionFilterChain(HttpSecurity http) throws Exception {
         http
-                // CSRF는 REST API라면 보통 disable
-                .csrf(csrf -> csrf.disable())
-
-                // 세션 사용 (항상 세션을 쓰는 방식)
-                .sessionManagement(session -> session
+                .csrf(csrf -> csrf.disable())   // CSRF는 REST API라면 보통 disable
+                .sessionManagement(session -> session   // 세션 사용 (항상 세션을 쓰는 방식)
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                 )
-
-                // 요청별 인가 정책
+                .formLogin(form -> form.disable())  // formLogin, httpBasic 은 disable (우린 직접 컨트롤러에서 처리함)
+                .httpBasic(basic -> basic.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/users",
@@ -47,11 +51,17 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler((request, response, authentication) -> {
+                            PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
+                            SocialLoginResponseDto dto = socialSessionService.createSession(principal, request);
 
-                // formLogin, httpBasic 은 disable (우린 직접 컨트롤러에서 처리함)
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable());
-
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write(new ObjectMapper().writeValueAsString(dto));
+                        })
+                );
         return http.build();
     }
 

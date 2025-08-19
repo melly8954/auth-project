@@ -1,0 +1,60 @@
+package com.melly.service.auth;
+
+import com.melly.domain.entity.UserAuthProviderEntity;
+import com.melly.domain.entity.UserEntity;
+import com.melly.domain.enums.UserRole;
+import com.melly.domain.enums.UserStatus;
+import com.melly.domain.repository.UserAuthProviderRepository;
+import com.melly.domain.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserRepository userRepository;
+    private final UserAuthProviderRepository userAuthProviderRepository;
+
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
+        String email = oAuth2User.getAttribute("email");
+        String provider = userRequest.getClientRegistration().getRegistrationId(); // google, kakao 등
+        String providerUserId = oAuth2User.getName(); // OAuth2User.getName()은 provider user id
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseGet(() -> registerNewSocialUser(email, provider, providerUserId));
+
+        return new PrincipalDetails(user, oAuth2User.getAttributes());
+    }
+
+    private UserEntity registerNewSocialUser(String email, String provider, String providerUserId) {
+        String randomPassword = UUID.randomUUID().toString();
+        UserEntity newUser = UserEntity.builder()
+                .username(email)
+                .email(email)
+                .password(randomPassword) // encode 필요
+                .status(UserStatus.ACTIVE)
+                .role(UserRole.USER)
+                .build();
+
+        UserEntity savedUser = userRepository.save(newUser);
+
+        // auth_provider 기록
+        UserAuthProviderEntity authProvider = UserAuthProviderEntity.builder()
+                .user(savedUser)
+                .provider(provider)
+                .providerUserId(providerUserId)
+                .build();
+        userAuthProviderRepository.save(authProvider);
+
+        return savedUser;
+    }
+}
