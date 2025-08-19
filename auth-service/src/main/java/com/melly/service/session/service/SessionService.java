@@ -4,7 +4,9 @@ import com.melly.common.exception.CustomException;
 import com.melly.common.exception.ErrorType;
 import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -61,6 +63,30 @@ public class SessionService {
             throw new CustomException(ErrorType.USER_INACTIVE);
         } catch (AuthenticationException e) {
             throw new CustomException(ErrorType.INTERNAL_ERROR);
+        }
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        // SecurityContextHolder 초기화
+        SecurityContextHolder.clearContext();
+
+        // 세션 무효화
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        // 쿠키 삭제
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("JSESSIONID".equals(cookie.getName())) {
+                    cookie.setValue(null);
+                    cookie.setMaxAge(0);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,5 +59,12 @@ public class AuthController implements ResponseController {
     public ResponseEntity<ResponseDto> sessionLogin(@RequestBody LoginRequestDto dto, HttpServletRequest request){
         LoginResponseDto response = sessionService.login(dto, request);
         return makeResponseEntity(HttpStatus.OK, null, response.getMessage(), response);
+    }
+
+    @PostMapping("/session/logout")
+    @Operation(summary = "세션 로그아웃", description = "현재 세션 로그아웃 처리")
+    public ResponseEntity<ResponseDto> logout(HttpServletRequest request, HttpServletResponse response) {
+        sessionService.logout(request, response);
+        return makeResponseEntity(HttpStatus.OK, null, "로그아웃 성공", null);
     }
 }
