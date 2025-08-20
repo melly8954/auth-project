@@ -4,6 +4,8 @@ import com.melly.common.annotation.ApiErrorResponses;
 import com.melly.common.controller.ResponseController;
 import com.melly.common.dto.ResponseDto;
 import com.melly.common.exception.ErrorType;
+import com.melly.service.jwt.JwtService;
+import com.melly.service.jwt.dto.LoginJwtResponseDto;
 import com.melly.service.session.dto.LoginRequestDto;
 import com.melly.service.session.dto.LoginResponseDto;
 import com.melly.service.session.service.SessionService;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Auth API", description = "사용자 인증방식 API")
 public class AuthController implements ResponseController {
     private final SessionService sessionService;
+    private final JwtService jwtService;
 
     @PostMapping("/session/login")
     @Operation(summary = "세션 로그인", description = "아이디와 비밀번호로 세션 로그인 처리")
@@ -66,5 +69,12 @@ public class AuthController implements ResponseController {
     public ResponseEntity<ResponseDto> logout(HttpServletRequest request, HttpServletResponse response) {
         sessionService.logout(request, response);
         return makeResponseEntity(HttpStatus.OK, null, "로그아웃 성공", null);
+    }
+
+    @PostMapping("/jwt/login")
+    public ResponseEntity<ResponseDto> jwtLogin(@RequestBody LoginRequestDto dto) {
+        LoginJwtResponseDto response = jwtService.login(dto);
+        return makeResponseEntity(HttpStatus.OK, null, response.getMessage(), response);
+
     }
 }

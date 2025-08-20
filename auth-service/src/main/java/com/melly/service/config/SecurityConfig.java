@@ -30,25 +30,42 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final SocialSessionService socialSessionService;
 
+    /**
+     * 인증 불필요한 공개 API 체인
+     */
+    @Bean
+    @Order(0)
+    public SecurityFilterChain publicFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/api/v1/users",          // 회원가입
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/", "/css/**", "/js/**", "/images/**" // 정적 리소스
+                )
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
+     * 세션 기반 인증 체인
+     */
     @Bean
     @Order(1)
     public SecurityFilterChain sessionFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())   // CSRF는 REST API라면 보통 disable
-                .sessionManagement(session -> session   // 세션 사용 (항상 세션을 쓰는 방식)
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                )
-                .formLogin(form -> form.disable())  // formLogin, httpBasic 은 disable (우린 직접 컨트롤러에서 처리함)
+                .securityMatcher("/api/v1/auth/session/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/users",
                                 "/api/v1/auth/session/login",
-                                "/api/v1/auth/session/logout",
-                                "/swagger-ui/**",        // Swagger UI 접속 허용
-                                "/v3/api-docs/**",       // OpenAPI 명세서 JSON 접근 허용
-                                "/swagger-ui.html"       // Swagger UI 기본 html 파일
-                        ).permitAll()
+                                "/api/v1/auth/session/logout")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -62,6 +79,29 @@ public class SecurityConfig {
                             response.getWriter().write(new ObjectMapper().writeValueAsString(dto));
                         })
                 );
+        return http.build();
+    }
+
+    /**
+     * JWT 기반 인증 체인
+     */
+    @Bean
+    @Order(2)
+    public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/v1/auth/jwt/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/v1/auth/jwt/login",
+                                "/api/v1/auth/jwt/logout")
+                        .permitAll()
+                        .anyRequest().authenticated()
+                );
+        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
