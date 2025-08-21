@@ -9,7 +9,7 @@ import com.melly.service.auth.PrincipalDetails;
 import com.melly.service.jwt.JwtFilter;
 import com.melly.service.jwt.JwtUtil;
 import com.melly.service.session.dto.SocialLoginResponseDto;
-import com.melly.service.session.service.SocialSessionService;
+import com.melly.service.session.service.SessionSocialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,8 +19,10 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -32,7 +34,7 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final SocialSessionService socialSessionService;
+    private final SessionSocialService sessionSocialService;
     private final JwtUtil jwtUtil;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
@@ -64,15 +66,16 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain sessionFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/v1/auth/session/**")
-                .csrf(csrf -> csrf.disable())
+                .securityMatcher("/api/v1/auth/session/**","/oauth2/**","/login/oauth2/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/session/login",
-                                "/api/v1/auth/session/logout")
+                                "/api/v1/auth/session/logout",
+                                "/login/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
@@ -82,8 +85,11 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
+                            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+                            String registrationId = oauthToken.getAuthorizedClientRegistrationId(); // google, kakao 등
+
                             PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
-                            SocialLoginResponseDto dto = socialSessionService.createSession(principal, request);
+                            SocialLoginResponseDto dto = sessionSocialService.createSession(principal, request, registrationId);
 
                             response.setContentType("application/json");
                             response.setCharacterEncoding("UTF-8");
