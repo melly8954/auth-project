@@ -100,7 +100,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/v1/auth/jwt/**")
+                .securityMatcher("/api/v1/auth/jwt/**", "/api/v1/users/test")
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(form -> form.disable())

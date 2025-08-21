@@ -15,10 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -54,5 +51,10 @@ public class UserController implements ResponseController {
     public ResponseEntity<ResponseDto> signup(@RequestBody SignupRequestDto dto) {
         signupService.signup(dto);
         return makeResponseEntity(HttpStatus.OK, null, "회원가입 성공", null);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<ResponseDto> test2() {
+        return makeResponseEntity(HttpStatus.OK, null, "users 테스트 성공", "users ok");
     }
 }
