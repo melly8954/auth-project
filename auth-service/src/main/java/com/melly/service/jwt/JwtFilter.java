@@ -1,5 +1,7 @@
 package com.melly.service.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.melly.common.dto.ResponseDto;
 import com.melly.common.exception.CustomException;
 import com.melly.common.exception.ErrorType;
 import com.melly.domain.entity.UserEntity;
@@ -44,36 +46,21 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String accessToken = header.substring(7); // "Bearer " 이후의 토큰만 추출
 
-        // 토큰이 없다면 다음 필터로 넘김
-        if (accessToken == null) {
-            log.warn("Access token is null");
-
-            // 다음 필터로 넘겨주는 doFilter();
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         // 토큰 만료 여부 확인
         if (jwtUtil.isExpired(accessToken)) {
             log.error("Expired JWT token");
 
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            filterChain.doFilter(request, response); // 필터 체인은 그대로 진행 (다음 필터에서 처리할 수 있게)
+            sendErrorResponse(response, 401, ErrorType.UNAUTHORIZED.getErrorCode(), "Expired JWT token");
             return;
         }
 
         // 토큰의 종류가 access 인지 검증 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(accessToken);
 
-        if (!category.equals("access")) {
+        if (!category.equals("AccessToken")) {
             log.error("Invalid JWT token");
 
-            // response body
-            PrintWriter writer = response.getWriter();
-            writer.print("invalid access token");
-
-            // response status code
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            sendErrorResponse(response, 401, ErrorType.UNAUTHORIZED.getErrorCode(), "Invalid JWT token");
             return;
         }
 
@@ -89,5 +76,25 @@ public class JwtFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, int status, String errorCode, String message) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .code(status)
+                .errorCode(errorCode)
+                .message(message)
+                .data(null)
+                .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(responseDto);
+
+        PrintWriter writer = response.getWriter();
+        writer.write(json);
+        writer.flush();
     }
 }

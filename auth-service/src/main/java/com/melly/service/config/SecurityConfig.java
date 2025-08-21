@@ -2,9 +2,12 @@ package com.melly.service.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.melly.domain.repository.UserRepository;
+import com.melly.service.auth.CustomAuthenticationEntryPoint;
 import com.melly.service.auth.CustomAuthenticationProvider;
 import com.melly.service.auth.CustomOAuth2UserService;
 import com.melly.service.auth.PrincipalDetails;
+import com.melly.service.jwt.JwtFilter;
+import com.melly.service.jwt.JwtUtil;
 import com.melly.service.session.dto.SocialLoginResponseDto;
 import com.melly.service.session.service.SocialSessionService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +33,8 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final SocialSessionService socialSessionService;
+    private final JwtUtil jwtUtil;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     /**
      * 인증 불필요한 공개 API 체인
@@ -45,7 +51,9 @@ public class SecurityConfig {
                         "/", "/css/**", "/js/**", "/images/**" // 정적 리소스
                 )
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
         return http.build();
     }
 
@@ -67,6 +75,9 @@ public class SecurityConfig {
                                 "/api/v1/auth/session/logout")
                         .permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
@@ -100,8 +111,12 @@ public class SecurityConfig {
                                 "/api/v1/auth/jwt/logout")
                         .permitAll()
                         .anyRequest().authenticated()
-                );
-        // .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                )
+                // JwtFilter 를 UsernamePasswordAuthenticationFilter 앞에 추가
+                .addFilterBefore(new JwtFilter(jwtUtil,userRepository), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

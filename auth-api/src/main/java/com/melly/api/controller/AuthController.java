@@ -19,10 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -75,6 +72,15 @@ public class AuthController implements ResponseController {
     public ResponseEntity<ResponseDto> jwtLogin(@RequestBody LoginRequestDto dto) {
         LoginJwtResponseDto response = jwtService.login(dto);
         return makeResponseEntity(HttpStatus.OK, null, response.getMessage(), response);
+    }
 
+    @GetMapping("/session/test")
+    public ResponseEntity<ResponseDto> test1() {
+        return makeResponseEntity(HttpStatus.OK, null, "session 테스트 성공", "session ok");
+    }
+
+    @GetMapping("/jwt/test")
+    public ResponseEntity<ResponseDto> test2() {
+        return makeResponseEntity(HttpStatus.OK, null, "jwt 테스트 성공", "jwt ok");
     }
 }
